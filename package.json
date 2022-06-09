@@ -1,0 +1,22 @@
+{
+  "name": "trackyour-employees",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlexCan36/trackyour-employees.git"
+  },
+  "author": "Alex Canez",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AlexCan36/trackyour-employees/issues"
+  },
+  "homepage": "https://github.com/AlexCan36/trackyour-employees#readme",
+  "dependencies": {
+    "inquirer": "^8.2.4"
+  }
+}
