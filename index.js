@@ -2,6 +2,7 @@ const { prompt } = require('inquirer')
 const logo = require('asciiart-logo')
 const db = require('./db/connection')
 const connection = require('./db/connection')
+const { eventNames } = require('./db/connection')
 
 function startApp() {
     const myLogo = logo({ name: 'Employee Manager' }).render()
@@ -14,7 +15,7 @@ async function promptUser() {
         name: 'starter',
         message: 'What would you like to do?',
         choices: [
-            'view all departments', 'view all roles', 'view all employees', 'add  department', 'add role', 'add  employee', 'update an employee role'
+            'view all departments', 'view all roles', 'view all employees', 'add department', 'add role', 'add  employee', 'update an employee role'
         ]
     })
 
@@ -92,106 +93,123 @@ function viewAllEmployees() {
 }
 
 function addDep() {
-    // inquirer.prompt(
-    //     {
-    //         type: 'input',
-    //         name: 'department',
-    //         message: 'Add new department',
-    //     })
-    //     .then(res => {
-    //     db.query("INSERT INTO department SET?",
-    //         {
-    //             dep_name: res.department
-    //         },
-    //         (err, res) => {
-    //             if (err)
-    //             throw err;
-    //             console.log('Department added');
-    //             promptUser();
-    //         })
-    // });
+    prompt(
+        {
+            type: 'input',
+            name: 'department',
+            message: 'Add new department',
+        })
+        .then(res => {
+            db.query("INSERT INTO department(name) VALUES (?)", [
+                res.department
+            ],
+                (err, res) => {
+                    if (err)
+                        throw err;
+                    console.log('Department added');
+                    promptUser();
+                })
+        });
 }
 
 
 function addRole() {
+    db.query("SELECT * FROM department", (err, res) => {
+        if (err)
+            throw err;
+            
+        prompt([
+            {
+                type: 'input',
+                name: 'role',
+                message: 'Insert name of new role',
+            },
+            {
+                type: 'input',
+                name: 'salary',
+                message: 'Whats the role salary',
+            },
+            {
+                type: 'list',
+                name: 'depID',
+                message: 'Select department ID',
+                choices: res.map(department => department.name)
+            }
+        ]).then(data => {
+            const depID = res.find(department => department.name === data.depID)
+            console.log(depID)
+            db.query("INSERT INTO roles (title, department_id, salary) VALUES (?, ?, ?)" , [data.role, depID.id, data.salary],
+                err => {
+                    if (err)
+                        throw err;
+
+                    console.log("Role added")
+                    promptUser();
+                })
+        })
+    });
+}
+
+function addEmployee() {
     // db.query("SELECT * FROM department", (err, res) => {
     //     if (err)
     //         throw err;
-    //     inquirer.prompt([
+            
+    //     prompt([
     //         {
     //             type: 'input',
-    //             name: 'role',
+    //             name: 'first_name',
     //             message: 'Insert name of new role',
     //         },
     //         {
     //             type: 'input',
-    //             name: 'salary',
+    //             name: 'last_name',
     //             message: 'Whats the role salary',
     //         },
     //         {
     //             type: 'list',
-    //             name: 'depID',
-    //             message: 'Select department ID',
-    //             res.map(department = > department.dep_name)
+    //             name: 'role_id',
+    //             message: 'Select role ID',
+    //             choices: res.map(department => department.name)
+    //         },
+    //         {
+    //             type: 'input',
+    //             name: 'manager_id',
+    //             message: 'Select manager ID',
     //         }
     //     ]).then(data => {
-    //         const depID = res.find(department => department.dep_name = data.depID)
-    //         db.query("INSERT INTO role_table SET", {
-    //             title: data.role, salary: salary.role, department_id: depID.id
-    //         },
+    //         const depID = res.find(department => department.name === data.depID)
+    //         console.log(employee)
+    //         db.query("INSERT INTO roles (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?)" , [data.role, depID.id, data.salary],
     //             err => {
     //                 if (err)
     //                     throw err;
 
-    //                 console.log("Role added")
+    //                 console.log("Employee added")
     //                 promptUser();
     //             })
-    //         })
+    //     })
     // });
 }
 
-function addEmployee() {
-    // inquirer.prompt([
-    //     {
-    //         type: 'input',
-    //         name: 'firstName',
-    //         message: 'Insert new employee first name'
-    //     },
-    //     {
-    //         type: 'input',
-    //         name: 'lastName',
-    //         message: 'Insert new employee last name'
-    //     },
-    //     {
-    //         type: 'input',
-    //         name: 'roleID',
-    //         message: 'Insert new employee ID'
-    //     },
-    //     {
-    //         type: 'input',
-    //         name: 'managerID',
-    //         message: 'Insert new manager ID'
-    //     }
-    // ])
-    //     .then(res => {
-    //         db.query("INSERT INTO employees SET",
-    //             {
-    //                 firstName: res.firstName,
-    //                 last_name: res.lastName,
-    //                 role_id: res.roleID,
-    //                 manager_id: res.managerID,
-    //             },
-    //             (err, res) => {
-    //                 if (err)
-    //                     throw err;
-    //                 console.log('New employee added');
-    //                 promptUser();
-    //             }
-    //     });
-}
-
 function addEmployeeRole() {
+    // db.query('SELECT CONCAT(employees.first_name,'', employee.last_name) AS Employee_Name FROM employees;',
+    //  const (err, res) {
+    //     if (err)
+    //         throw err;
+    //     for (let i = 0; < res.lenght; i++) {
+    //         let name = res(i).Employee_Name;
+    //         name.push(name);
+    //     }
 
+    //     inquirer.prompt([
+    //         {
+    //             type: 'list',
+    //             name: 'Select employee',
+    //             message: ''
+    //         }
+    //     ])
+    // }
 }
 
 startApp()
