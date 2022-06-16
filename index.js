@@ -15,7 +15,7 @@ async function promptUser() {
         name: 'starter',
         message: 'What would you like to do?',
         choices: [
-            'view all departments', 'view all roles', 'view all employees', 'add department', 'add role', 'add  employee', 'update an employee role'
+            'view all departments', 'view all roles', 'view all employees', 'add department', 'add role', 'add employee', 'update an employee role'
         ]
     })
 
@@ -49,7 +49,7 @@ async function promptUser() {
             break;
         case 'update an employee role':
             // Do something if they select this option
-            addEmployeeRole()
+            updateEmployeerole()
             break;
     }
 }
@@ -117,7 +117,7 @@ function addRole() {
     db.query("SELECT * FROM department", (err, res) => {
         if (err)
             throw err;
-            
+
         prompt([
             {
                 type: 'input',
@@ -138,7 +138,7 @@ function addRole() {
         ]).then(data => {
             const depID = res.find(department => department.name === data.depID)
             console.log(depID)
-            db.query("INSERT INTO roles (title, department_id, salary) VALUES (?, ?, ?)" , [data.role, depID.id, data.salary],
+            db.query("INSERT INTO roles (title, department_id, salary) VALUES (?, ?, ?)", [data.role, depID.id, data.salary],
                 err => {
                     if (err)
                         throw err;
@@ -151,65 +151,97 @@ function addRole() {
 }
 
 function addEmployee() {
-    // db.query("SELECT * FROM department", (err, res) => {
-    //     if (err)
-    //         throw err;
-            
-    //     prompt([
-    //         {
-    //             type: 'input',
-    //             name: 'first_name',
-    //             message: 'Insert name of new role',
-    //         },
-    //         {
-    //             type: 'input',
-    //             name: 'last_name',
-    //             message: 'Whats the role salary',
-    //         },
-    //         {
-    //             type: 'list',
-    //             name: 'role_id',
-    //             message: 'Select role ID',
-    //             choices: res.map(department => department.name)
-    //         },
-    //         {
-    //             type: 'input',
-    //             name: 'manager_id',
-    //             message: 'Select manager ID',
-    //         }
-    //     ]).then(data => {
-    //         const depID = res.find(department => department.name === data.depID)
-    //         console.log(employee)
-    //         db.query("INSERT INTO roles (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?)" , [data.role, depID.id, data.salary],
-    //             err => {
-    //                 if (err)
-    //                     throw err;
+    db.query("SELECT * FROM roles", (err, rolesRes) => {
+        if (err)
+            throw err;
+        db.query("SELECT * FROM employee", (err, employeeRes) => {
+            if (err)
+                throw err;
+            prompt([
+                {
+                    type: 'input',
+                    name: 'firstName',
+                    message: 'Insert first name'
+                },
+                {
+                    type: 'input',
+                    name: 'lastName',
+                    message: 'Insert last name'
+                },
+                {
+                    type: 'list',
+                    name: 'roleID',
+                    message: 'Select role ID',
+                    choices: rolesRes.map(role => role.title)
+                },
+                {
+                    type: 'list',
+                    name: 'employeeId',
+                    message: 'Select manager ID',
+                    choices: employeeRes.map(employee => employee.first_name + ' ' + employee.last_name)
+                },
+            ]).then(res => {
+                const roleID = rolesRes.find(role => role.title === res.roleID)
+                const employeeId = employeeRes.find(employee => (employee.first_name + ' ' + employee.last_name) === res.employeeId)
+                db.query("INSERT INTO employee (first_name , last_name, role_id, manager_id)  VALUES (?, ?, ?, ?)",
+                    [res.firstName, res.lastName, roleID.id, employeeId.id],
 
-    //                 console.log("Employee added")
-    //                 promptUser();
-    //             })
-    //     })
-    // });
+                    (err, res) => {
+                        if (err)
+                            throw err;
+                        console.log('New employee added');
+                        promptUser();
+                    })
+            })
+        })
+    })
 }
 
-function addEmployeeRole() {
-    // db.query('SELECT CONCAT(employees.first_name,'', employee.last_name) AS Employee_Name FROM employees;',
-    //  const (err, res) {
-    //     if (err)
-    //         throw err;
-    //     for (let i = 0; < res.lenght; i++) {
-    //         let name = res(i).Employee_Name;
-    //         name.push(name);
-    //     }
-
-    //     inquirer.prompt([
-    //         {
-    //             type: 'list',
-    //             name: 'Select employee',
-    //             message: ''
+//query employees , callbacl on query query the roles,the on that callblock nest the inquirer , very similar to add employee 
+function updateEmployeerole() {
+    // prompt([
+    //     {
+    //         name: 'role',
+    //         type: 'input',
+    //         message: 'Enter role'
+    //     },
+    //     {
+    //         name: 'salary',
+    //         type: 'number',
+    //         message: 'Enter salary',
+    //         validate: function(value) {
+    //             if(isNaN(value)=== false){
+    //                 return true;
+    //             }
+    //             return false;
     //         }
-    //     ])
-    // }
+    //     },
+    //     {
+    //         name: 'department_id',
+    //         type: 'number',
+    //         message: 'Enter department id',
+    //         validate: function(value){
+    //             if(isNaN(value) === false){
+    //               return true;  
+    //             }
+    //             return false;
+    //         }
+    //     }
+    // ]).then(function(answer){
+    //     connection.query(
+    //         "INSERT INTO role SET (?)",
+    //         {
+    //             title: answer.role,
+    //             salary: answer.salary,
+    //             department_id: answer.department_id
+    //         },
+    //         function(err){
+    //             if(err)
+    //             throw err;
+    //             console.log('Employee role updated' + answer.role);
+    //         }
+    //     )
+    // })
 }
 
 startApp()
