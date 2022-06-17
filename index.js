@@ -85,7 +85,7 @@ function viewAllRoles() {
 }
 
 function viewAllEmployees() {
-    connection.query("SELECT first_name, last_name FROM employee", function (err, results) {
+    connection.query("SELECT first_name, last_name, title FROM employee JOIN roles on employee.role_id = roles.id", function (err, results) {
         if (err) throw err;
         console.table(results);
         promptUser();
@@ -197,51 +197,40 @@ function addEmployee() {
     })
 }
 
-//query employees , callbacl on query query the roles,the on that callblock nest the inquirer , very similar to add employee 
 function updateEmployeerole() {
-    // prompt([
-    //     {
-    //         name: 'role',
-    //         type: 'input',
-    //         message: 'Enter role'
-    //     },
-    //     {
-    //         name: 'salary',
-    //         type: 'number',
-    //         message: 'Enter salary',
-    //         validate: function(value) {
-    //             if(isNaN(value)=== false){
-    //                 return true;
-    //             }
-    //             return false;
-    //         }
-    //     },
-    //     {
-    //         name: 'department_id',
-    //         type: 'number',
-    //         message: 'Enter department id',
-    //         validate: function(value){
-    //             if(isNaN(value) === false){
-    //               return true;  
-    //             }
-    //             return false;
-    //         }
-    //     }
-    // ]).then(function(answer){
-    //     connection.query(
-    //         "INSERT INTO role SET (?)",
-    //         {
-    //             title: answer.role,
-    //             salary: answer.salary,
-    //             department_id: answer.department_id
-    //         },
-    //         function(err){
-    //             if(err)
-    //             throw err;
-    //             console.log('Employee role updated' + answer.role);
-    //         }
-    //     )
-    // })
+    connection.query("SELECT * FROM roles", (err, rolesRes) => {
+        if (err)
+            throw err;
+        connection.query("SELECT * FROM employee", (err, employeeRes) => {
+            if (err)
+                throw err;
+            prompt([
+                {
+                    name: 'employeeId',
+                    type: 'list',
+                    message: 'Select employee you want to update',
+                    choices: employeeRes.map(employee => employee.first_name + ' ' + employee.last_name)
+                },
+                {
+                    name: 'roleID',
+                    type: 'list',
+                    message: 'Select new role ID',
+                    choices: rolesRes.map(role => role.title)
+                },
+            ]).then(res => {
+                const roleID = rolesRes.find(role => role.title === res.roleID)
+                const employeeId = employeeRes.find(employee => (employee.first_name + ' ' + employee.last_name) === res.employeeId)
+                db.query("UPDATE employee SET role_id = ? WHERE id = ? ", [roleID.id, employeeId.id],
+                    (err, res) => {
+                        if (err)
+                            throw err;
+                        console.log('Role updated');
+                        promptUser();
+                    })
+            })
+        })
+    })
 }
+
 
 startApp()
